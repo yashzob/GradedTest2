@@ -6,33 +6,48 @@ import java.util.Set;
 import org.springframework.stereotype.Service;
 
 import com.CustomerRelationshipManagemanet.First.Model.Customer;
+import com.CustomerRelationshipManagemanet.First.repository.CustomerRepository;
+
 @Service
 public class CustomerService {
 	// this is a variable Data store
-	private Set<Customer> customer = new HashSet<>();
+	// private Set<Customer> customer = new HashSet<>();
 
-	public void addCustomer(Customer customer) {
+	private final CustomerRepository customerRepository;
+
+	public CustomerService(CustomerRepository customerRepository) {
+		this.customerRepository=customerRepository;
+	}
+
+	public Customer addCustomer(Customer customer) {
 		System.out.println("Saving a Customer....");
 		System.out.println(customer);
-		this.customer.add(customer);
+		Customer savedCustomer=this.customerRepository.save(customer);
+		return savedCustomer;
 	}
 
 	public Set<Customer> fetchAllCustomer() {
-		return this.customer;
+		return new HashSet<>(this.customerRepository.findAll());
 
 	}
 
 	public Customer fetchCustomerById(long customerId) {
-		return this.customer
-				.stream()
-				.filter(customer -> customer.getId() == customerId)
-				.findAny()
+		return this.customerRepository
+				.findById(customerId)
 				.orElseThrow(
 				() -> new IllegalArgumentException("Invalid CustomerId Is passed, Please enter the right one"));
 	}
 
 	public void deleteCustomerById(long customerId) {
-		this.customer.removeIf(customer -> customer.getId() == customerId);
+		this.customerRepository.deleteById(customerId);
 	}
-
+	
+	public Customer updateCustomer(long customerId,Customer updatedCustomer) {
+		Customer customerFromRepository= this.fetchCustomerById(customerId);
+		customerFromRepository.setEmail(updatedCustomer.getEmail());
+		customerFromRepository.setFirstName(updatedCustomer.getFirstName());
+		customerFromRepository.setLastName(updatedCustomer.getLastName());
+		return customerFromRepository;
+		
+	}
 }
